@@ -1,0 +1,7 @@
+{
+    "category": "Internal Configurations' Pipeline",
+    "subcategory": "Host Accessibility",
+    "event": "Unresolvable Hosts",
+    "description": "This code checks whether all hosts in various configurations are resolvable via DNS. It is executed once a week and takes as input a mesh configuration that contains multiple configurations and hosts. For each host, it performs a DNS resolution check. If a host is not resolvable, it is flagged, and the corresponding configuration is noted for necessary updates. This process is essential for keeping the network and results of other alarms and alerts reliable and up-to-date. The code can be found here: [https://github.com/hooloobooroodkoo/aaas/blob/main/check_configuration_for_hosts_accessibility.py].",
+    "template": "The following hosts are not resolvable in the given configurations:\n%{hosts}\nConfigurations affected:\n%{configurations}\nPlease review and update the DNS entries or configurations as needed to resolve the issue."
+}
