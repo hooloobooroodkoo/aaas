@@ -1,0 +1,7 @@
+{
+    "category": "Internal Configurations' Pipeline",
+    "subcategory": "Elasticsearch Data Compliance",
+    "event": "Hosts Not Found in ps_throughput/ps_owd/ps_trace",
+    "description": "This code checks whether expected hosts are found in the Elasticsearch throughput/latency/trace data. It is executed with different schedule(once for 24h for throughput; 2h for trace; 2h for latency) and takes a list of expected hosts as input. The function queries Elasticsearch for certain data and compares it with the list of expected hosts. It reports hosts that are not found in Elasticsearch in such way reporting all the discovered discrepancies. This process is crucial for ensuring that all the relevant information about hosts' testing is saved correctly in the database. The code can be found here: [https://github.com/hooloobooroodkoo/aaas/blob/main/check_es_meta.py].",
+    "template": "The following hosts were not found in ps_{test_type} Elasticsearch:\n%{missing_hosts}"
+}
