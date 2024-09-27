@@ -13,11 +13,12 @@
 #
 # Author: Yana Holoborodko
 # Copyright 2024
+
 import socket
-import psconfig.api
+import psconfig.api # https://github.com/marian-babik/psconfig-client
 import requests
 import hashlib
-from alarms import alarms
+from alarms import alarms # https://github.com/sand-ci/AlarmsAndAlerts/blob/main/alarms.py
 
 def host_resolvable(host):
     """
