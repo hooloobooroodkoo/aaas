@@ -16,6 +16,8 @@
 import socket
 import psconfig.api
 import requests
+import hashlib
+from alarms import alarms
 
 def host_resolvable(host):
     """
@@ -64,6 +66,9 @@ def check_configuration_for_hosts_accessibility(config, all_conf_hosts):
 def main():
     mesh_url = "https://psconfig.aglt2.org/pub/config"
     configs = extract_configs_from_url(mesh_url)
+    alarmType = 'Unresolvable Host'
+    # create the alarm objects
+    alarmOnHost = alarms("Internal Configurations' Pipeline", 'Host Accessibility', alarmType)
     
     if not configs:
         print("No configurations found or failed to load the mesh configuration.")
@@ -83,8 +88,22 @@ def main():
 
     if inaccessible_hosts:
         print("\nSummary:")
-        for host, configs in inaccessible_hosts.items():
-            print(f"Host '{host}' needs updates in configurations: {', '.join(configs)}")
+        for host, host_configs in inaccessible_hosts.items():
+            doc = {
+                'host': host,
+                'configurations': host_configs,
+                'alarm_type': alarmType
+            }
+            
+            toHash = ','.join([host] + host_configs)
+            doc['alarm_id'] = hashlib.sha224(toHash.encode('utf-8')).hexdigest()
+
+            # Add the alarm for this host
+            alarmOnHost.addAlarm(body=alarmType, tags=[host] + host_configs, source=doc)
+
+            # Print the summary
+            print(f"Host '{host}' needs updates in configurations: {', '.join(host_configs)}")
+    
     else:
         print("All hosts are resolvable. No updates needed.")
     
