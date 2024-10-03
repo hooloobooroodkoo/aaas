@@ -1,7 +1,7 @@
 {
     "category": "Networking",
     "subcategory": "Perfsonar",
-    "event": "hosts' not found in ps_throughput tests' configurations",
+    "event": "hosts' not found in throughput tests' configurations",
     "description": "This code checks the presence of hosts in configurations. It is executed daily and takes input from a list of expected hosts. The function queries PWA for throughput tests' hosts and compares this list with the list of expected hosts. It reports hosts that are not covered by configurations' tests and consequently can not be found in Elasticsearch. This process is crucial for representing the hosts' test coverage. The code can be found here: [..].",
     "template": "Hosts not found in the configurations for ps-throughput (%{config_num}/%{all_hosts_num} not found):\n%{hosts_configs}")"
 }
