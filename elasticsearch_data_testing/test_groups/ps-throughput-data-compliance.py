@@ -1,4 +1,4 @@
-# check_data_in_es - This function checks whether expected hosts are found in the Elasticsearch throughput data
+# check_data_in_es - This function checks whether expected hosts are found in the Elasticsearch throughput data the day before yesterday
 #                    and compares it with the expected hosts from the provided mesh configuration.
 #                    It queries Elasticsearch for specific test data (throughput)
 #                    within a 24-hour time range and verifies if the hosts are listed in the index. 
@@ -225,7 +225,7 @@ if __name__ == '__main__':
     delta = today_date - dt.timedelta(days=2)
     time_from = dt.time(0, 0)
     time_to = dt.time(23, 59, 59)
-    time_from = dt.datetime.combine(delta, time_from).strftime('%Y-%m-%d %H:%M')
+    time_from = dt.datetime.combine(delta, time_from).strftime('%Y-%m-%d %H:%M') # a day before yesterday
     time_to = dt.datetime.combine(delta, time_to).strftime('%Y-%m-%d %H:%M')
     # print(time_from, time_to)
     alarmOnMulty1 = alarms('Networking', 'Sites', f"tests' results for hosts not found in ps_throughput")
