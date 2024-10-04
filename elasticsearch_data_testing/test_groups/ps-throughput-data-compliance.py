@@ -213,8 +213,6 @@ def check_data_in_es(ips, mesh_config, data_from, data_to, test_type):
 #     fig.update_yaxes(range=[0, len(all_hosts)])
 #     fig.show()    
     return config_counts, es_counts, all_hosts_grid[(all_hosts_grid['config'] == True) & (all_hosts_grid['es_data'] == False)].index.to_list(), all_hosts_grid[all_hosts_grid['config'] == False].index.to_list()
-
-  
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -229,7 +227,6 @@ if __name__ == '__main__':
     time_to = dt.datetime.combine(delta, time_to).strftime('%Y-%m-%d %H:%M')
     # print(time_from, time_to)
     alarmOnMulty1 = alarms('Networking', 'Sites', f"tests' results for hosts not found in ps_throughput")
-    alarmOnMulty2 = alarms('Networking', 'Sites', f"hosts' not found in ps_throughput tests' configurations")
     # line = '------------------------------------------------------------------'
     # print(line)
     # print(f"                           THROUGHPUT                             ")
@@ -241,17 +238,8 @@ if __name__ == '__main__':
            'num_configs': str(counts_conf[True]),
            'percent': str(round(((counts_conf[True]-counts_es[True])/counts_conf[True])*100, 2)),
            'hosts_es': not_found_hosts_es}
-    doc2 = {'from': time_from, 
-           'to': time_to, 
-           'all_hosts_num': str(len(all_hosts)),
-           'config_num': str(len(not_found_hosts_configs)),
-           'hosts_configs': not_found_hosts_configs}
     toHash1 = ','.join([str(not_found_hosts_es), time_from, time_to])
-    toHash2 = ','.join([str(not_found_hosts_configs), time_from, time_to])
     doc1['alarm_id'] = hashlib.sha224(toHash1.encode('utf-8')).hexdigest()
-    doc2['alarm_id'] = hashlib.sha224(toHash2.encode('utf-8')).hexdigest()
     # send the alarms with the proper message
     alarmOnMulty1.addAlarm(body='not found in the Elasticsearch', tags=['throughput'], source=doc1)
-    alarmOnMulty2.addAlarm(body='not found in PWA configurations', tags=['throughput'], source=doc2)
     print(f"Hosts expected but not found in the Elasticsearch ps-throughput ({doc1['percent']}% out of included to configurations not found):\n{not_found_hosts_es}\n\n")
-    print(f"Hosts not found in the configurations for ps-throughput ({doc2['config_num']}/{doc2['all_hosts_num']} not found):\n{not_found_hosts_configs}")
