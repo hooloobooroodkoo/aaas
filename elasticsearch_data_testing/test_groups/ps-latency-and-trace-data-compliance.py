@@ -243,9 +243,11 @@ if __name__ == '__main__':
         counts_conf, counts_es, not_found_hosts_es, not_found_hosts_configs = check_data_in_es(list(all_hosts), mesh_config, tests[test]['dataFrom'], tests[test]['dataTo'], test)
         doc1 = {'from': time_from, 
                'to': time_to, 
+               'type': test,
+               'percent': round(((counts_conf[True]-counts_es[True])/counts_conf[True])*100, 2),
                'hosts_es': not_found_hosts_es}
         toHash1 = ','.join([str(not_found_hosts_es), time_from, time_to])
         doc1['alarm_id'] = hashlib.sha224(toHash1.encode('utf-8')).hexdigest()
         # send the alarms with the proper message
         alarmOnMulty1.addAlarm(body='not found in the Elasticsearch', tags=['hosts not found in the Elasticsearch'], source=doc1)
-        print(f"Hosts expected but not found in the Elasticsearch ps-{test} ({round(((counts_conf[True]-counts_es[True])/counts_conf[True])*100, 2)}% out of included to configurations not found):\n{not_found_hosts_es}\n\n")
+        print(f"Hosts expected but not found in the Elasticsearch ps-{test} ({doc1['percent']}% out of included to configurations not found):\n{not_found_hosts_es}\n\n")
