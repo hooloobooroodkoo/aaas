@@ -179,16 +179,17 @@ def check_es_meta(date_from, date_to):
             print(f"\nHost not found in Elasticsearch ps-meta: {host}")
     # hosts in meta_data are found in Elasticsearch but not in configurations
     found_in_es_not_in_config.extend(meta_data.index.to_list())
-    if len(found_in_es_not_in_config)>=0:
-        for h in found_in_es_not_in_config:
-        # create the alarm source content
-            doc = {'from': date_from, 'to': date_to, 'host': h}
-            toHash = ','.join([h, date_from, date_to])
-            doc['alarm_id'] = hashlib.sha224(toHash.encode('utf-8')).hexdigest()
-            # send the alarm with the proper message
-            alarmOnMulty.addAlarm(body='third-party hosts', tags=[h], source=doc)
-            print(f"\nThird-party host found in Elasticsearch ps-meta: {h}")
-            # print(doc)
+    # if len(found_in_es_not_in_config)>=0:
+    #     for h in found_in_es_not_in_config:
+    #     # create the alarm source content
+    #         doc = {'from': date_from, 'to': date_to, 'host': h}
+    #         toHash = ','.join([h, date_from, date_to])
+    #         doc['alarm_id'] = hashlib.sha224(toHash.encode('utf-8')).hexdigest()
+    #         # send the alarm with the proper message
+    #         alarmOnMulty.addAlarm(body='third-party hosts', tags=[h], source=doc)
+    #         print(f"\nThird-party host found in Elasticsearch ps-meta: {h}")
+    #         # print(doc)
+    
     return not_found_in_es, found_in_es_not_in_config
 
 
