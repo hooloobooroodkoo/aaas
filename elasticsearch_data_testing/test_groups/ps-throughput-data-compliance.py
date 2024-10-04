@@ -5,17 +5,14 @@
 #                    The function identifies hosts that are expected (in the mesh configuration) 
 #                    but not found in Elasticsearch and hosts that were not found
 #                    in the configuration.
-#
 #                    The process retrieves the hosts from the configuration, queries Elasticsearch 
 #                    for the relevant test data, and counts the number of hosts found.
 #                    In addition, the function can generate a plot comparing the number of hosts found 
 #                    in the configuration versus those found in Elasticsearch. This information helps 
 #                    maintain an accurate and up-to-date monitoring system by identifying discrepancies 
 #                    between the expected and actual data.
-#
 #                    The function returns a DataFrame with the hosts, their status (found or not), 
 #                    and lists hosts missing from both Elasticsearch and the configuration.
-#
 # Author: Yana Holoborodko
 # Copyright 2024
 import time
