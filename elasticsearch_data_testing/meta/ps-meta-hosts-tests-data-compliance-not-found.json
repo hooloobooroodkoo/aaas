@@ -1,7 +1,7 @@
 {
     "category": "Networking",
     "subcategory": "Perfsonar",
-    "event": "host not found in indices",
+    "event": "meta data not found",
     "description": "This code checks whether expected host are found in the Elasticsearch meta data. It is executed daily and takes a list of expected hosts as input. The function queries Elasticsearch for meta data and compares it with the list of expected hosts. It reports hosts that are not found in Elasticsearch in such way reporting all the discovered discrepancies. This process is crucial for ensuring that all the relevant information about hosts' testing is saved correctly in the database. The code can be found here: [https://github.com/hooloobooroodkoo/aaas/blob/main/elasticsearch_data_testing/ps-meta-hosts-tests-data-compliance.py].",
-    "template": "The following host was not found in Elasticsearch ps-meta:\nhost: %{host}\nsite: %{site}\nPlease review the host configurations accordingly."
+    "template": "The meta data for host %{host} site %{site} not found in Elasticsearch ps-meta."
 }
