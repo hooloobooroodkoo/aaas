@@ -1,7 +1,0 @@
-{
-    "category": "Networking",
-    "subcategory": "Perfsonar",
-    "event": "tests' results for hosts not found in indices",
-    "description": "This code checks whether the latency and trace data for expected hosts are found in the Elasticsearch. It is executed every 2 hours and takes a list of expected hosts as input. The function queries Elasticsearch for latency and trace data by turn and compares it with the list of expected hosts. It reports hosts that are mentioned in the configurations but can not be found in Elasticsearch. This process is crucial for ensuring that all the relevant information about hosts' testing is saved correctly in the database. The code can be found here: [..].",
-    "template": "Hosts expected but not found in the Elasticsearch ps-%{type} (%{percent}% out of included to configurations not found):\n%{hosts_es}"
-}
