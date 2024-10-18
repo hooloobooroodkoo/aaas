@@ -1,13 +1,12 @@
-# check_es_meta - This function checks whether expected hosts are found in the Elasticsearch meta data(day before yesterday).
+# ps-meta-data-compliance - This module checks whether expected hosts are found in the Elasticsearch meta data(day before yesterday).
 #                  It queries Elasticsearch for meta data and compares it with a list of expected hosts.
 #                  The purpose of this function is to identify hosts that are not found in the Elasticsearch
-#                  meta data, as well as those that are found in Elasticsearch but are not mentioned in 
-#                  the provided configurations. This is crucial for maintaining the integrity of the 
+#                  meta data, but are specified in the configurations. This is crucial for maintaining the integrity of the 
 #                  configurations and ensuring that all relevant hosts' tests are captured in the monitoring 
 #                  system database therefore the inner pipeline is in proper working order.
 #
-#                  The function returns a list of hosts that were not found in Elasticsearch and a list 
-#                  of hosts that were found in Elasticsearch but are absent from the configurations(assumingly, from others' configurations).
+#                  The function returns a list of hosts that were not found in Elasticsearch. It creates an alarm
+#                  for each host not found in the Elasticsearch.
 #
 # Author: Yana Holoborodko
 # Copyright 2024
