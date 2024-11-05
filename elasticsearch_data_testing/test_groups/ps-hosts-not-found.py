@@ -1,16 +1,16 @@
-# ps-tests-compliance - This module checks whether expected hosts are found in the Elasticsearch throughput/latency/trace 
+# ps-hosts-not-found - This module checks whether expected hosts are found in the Elasticsearch throughput/latency/trace
 #                    data the day before yesterday and compares it with
 #                    the expected hosts from the provided mesh configuration.
 #                    It queries Elasticsearch for specific test data (throughput/latency/trace)
-#                    within a 24-hour time range and verifies if the hosts are listed in the index. 
-#                    The function identifies hosts that are expected (in the mesh configuration) 
+#                    within a 24-hour time range and verifies if the hosts are listed in the index.
+#                    The function identifies hosts that are expected (in the mesh configuration)
 #                    but not found in Elasticsearch.
 #
-#                    The process retrieves the hosts from the configuration, queries Elasticsearch 
+#                    The process retrieves the hosts from the configuration, queries Elasticsearch
 #                    for the relevant test data, and counts the number of hosts not found.
-#                    In addition, the function can generate a plot comparing the number of hosts found 
-#                    in the configuration versus those found in Elasticsearch. This information helps 
-#                    maintain an accurate and up-to-date monitoring system by identifying discrepancies 
+#                    In addition, the function can generate a plot comparing the number of hosts found
+#                    in the configuration versus those found in Elasticsearch. This information helps
+#                    maintain an accurate and up-to-date monitoring system by identifying discrepancies
 #                    between the expected and actual data.
 # Author: Yana Holoborodko
 # Copyright 2024
@@ -24,27 +24,10 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 import psconfig.api
 import urllib3
+import pprint
 from alarms import alarms
 
-def ConnectES():
-    """
-    Connects to the Elasticsearch instance using credentials from a file.
-    Returns:
-        Elasticsearch object if the connection is successful, None otherwise.
-    """
-    user, passwd = None, None
-    with open("creds.key") as f:
-        user = f.readline().strip()
-        passwd = f.readline().strip()
-    try:
-        es = Elasticsearch([{'host': 'atlas-kibana.mwt2.org', 'port': 9200, 'scheme': 'https'}],
-                           request_timeout=240, http_auth=(user, passwd), max_retries=10)
-        print('Success' if es.ping() else 'Fail')
-        return es
-    except Exception as error:
-        print(">>> Elacticsearch Client Error:", error)
-        
-def query4Avg(dateFrom, dateTo, testType):
+def query4Hosts(dateFrom, dateTo, testType):
     query = {
             "bool" : {
               "must" : [
@@ -58,11 +41,11 @@ def query4Avg(dateFrom, dateTo, testType):
                 }
               ]
             }
-          }   
+          }
     aggregations = {
         "unique_host_pairs": {
             "composite": {
-                "size": 20000,  # Adjust the size if needed
+                "size": 20000,
                 "sources": [
                     {
                         "src_host": {
@@ -81,7 +64,7 @@ def query4Avg(dateFrom, dateTo, testType):
                 ]
             }
         }
-    } 
+    }
     aggrs = []
     aggdata = hp.es.search(index=f'ps_{testType}', query=query, aggregations=aggregations)
     for item in aggdata['aggregations']['unique_host_pairs']['buckets']:
@@ -95,7 +78,7 @@ def queryData(dateFrom, dateTo, test):
     intv = int(hp.CalcMinutes4Period(dateFrom, dateTo)/60)
     time_list = hp.GetTimeRanges(dateFrom, dateTo, intv)
     for i in range(len(time_list)-1):
-        data.extend(query4Avg(time_list[i], time_list[i+1], test))
+        data.extend(query4Hosts(time_list[i], time_list[i+1], test))
     return set(data)
 
 def check_tests_for_host(host, mesh_config):
@@ -114,7 +97,7 @@ def check_tests_for_host(host, mesh_config):
 def create_hosts_tests_types_grid(hosts, mesh_config):
     """
     Creates a dataframe with a list of all hosts and whether
-    or not they are tested in each group(latency and trace). 
+    or not they are tested in each group(latency and trace).
     """
     host_test_type = pd.DataFrame({
     'host': list(hosts),
@@ -130,7 +113,7 @@ def create_hosts_tests_types_grid(hosts, mesh_config):
 
 def check_data_difference_in_es(data_from, data_to, test_type, expected_hosts):
     """
-    Checks whether all expected(mentioned in configurations) hosts 
+    Checks whether all expected(mentioned in configurations) hosts
     were found in the Elasticsearch, and returns the list of hosts which were omitted.
     Can creates the plot for visualization of results.
     """
@@ -154,23 +137,38 @@ if __name__ == '__main__':
     ips = list(all_hosts)
     test_types = ['owd', 'trace', 'throughput']
     expected_tests_types = create_hosts_tests_types_grid(ips, mesh_config)
+    sites_mapping = {}
+    stats = {'percent_owd': None,
+            'percent_trace': None,
+            'percent_throughput': None,
+            'num_not_found_owd': None,
+            'num_not_found_trace': None,
+            'num_not_found_throughput': None,
+            'num_expected_owd': None,
+            'num_expected_trace': None,
+            'num_expected_throughput': None}
     for test in test_types:
-        alarmOnMulty = alarms('Networking', 'Sites', f"hosts from configurations not found in ps_{test}")
-        # line = '------------------------------------------------------------------'
-        # print(line)
-        # print(f"                           {test.upper()}                             ")
-        # print(line)
         expected_hosts_test = set(expected_tests_types[expected_tests_types[test] == True]['host'].to_list())
         diff, percent = check_data_difference_in_es(m_from, m_to, test, expected_hosts_test)
-        doc = {'from': m_from, 
-               'to': m_to, 
-               'percent': percent,
-               'num_not_found': len(diff),
-               'num_expected': len(expected_hosts_test),
-               'hosts': list(diff),
-               'type': test}
-        toHash = ','.join([str(diff), m_from, m_to])
+        for host in diff:
+            site = mesh_config.get_site(host)
+            if site not in sites_mapping:
+                type_subset = dict()
+                sites_mapping[site] = type_subset
+            if test not in sites_mapping[site].keys():
+                sites_mapping[site][test] = set()
+            sites_mapping[site][test].add(host)
+        stats[f'percent_{test}'] = percent
+        stats[f'num_not_found_{test}'] = len(diff)
+        stats[f'num_expected_{test}'] = len(expected_hosts_test)
+    print(f"Hosts expected but not found in the Elasticsearch ps-owd({stats['percent_owd']}% ({stats['num_not_found_owd']}/{stats['num_expected_owd']}) out of included to configurations not found)\nHosts expected but not found in the Elasticsearch ps-trace({stats['percent_trace']}% ({stats['num_not_found_trace']}/{stats['num_expected_trace']}) out of included to configurations not found)\nHosts expected but not found in the Elasticsearch ps-owd({stats['percent_throughput']}% ({stats['num_not_found_throughput']}/{stats['num_expected_throughput']}) out of included to configurations not found)\n")
+    for s in sites_mapping.keys():
+        alarmOnSite = alarms('Networking', 'Sites', f"hosts not found")
+        doc = {'from': m_from,
+               'to': m_to,
+               'site': s,
+               'hosts': sites_mapping[s]}
+        toHash = ','.join([s, str(sites_mapping[s]), m_from, m_to, test])
         doc['alarm_id'] = hashlib.sha224(toHash.encode('utf-8')).hexdigest()
-        # send the alarms with the proper message
-        alarmOnMulty.addAlarm(body='not found in the Elasticsearch', tags=[test], source=doc)
-        print(f"Hosts expected but not found in the Elasticsearch ps-{test} ({doc['percent']}% ({doc['num_not_found']}/{doc['num_expected']}) out of included to configurations not found):\n{diff}\n\n")
+        alarmOnSite.addAlarm(body='not found in the Elasticsearch', tags=[s], source=doc)
+        print(f"Hosts expected but not found in the Elasticsearch\n{s}\n{doc['hosts']}\n")
