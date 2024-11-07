@@ -12,6 +12,7 @@
 #                    in the configuration versus those found in Elasticsearch. This information helps
 #                    maintain an accurate and up-to-date monitoring system by identifying discrepancies
 #                    between the expected and actual data.
+#                    TODO: Marian's API returns sites whose names do not exactly match those recorded in Elasticsearch. This directly affects the tags that users use.
 # Author: Yana Holoborodko
 # Copyright 2024
 import helpers as hp
@@ -24,7 +25,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 import psconfig.api
 import urllib3
-import pprint
 from alarms import alarms
 
 def query4Hosts(dateFrom, dateTo, testType):
@@ -161,7 +161,7 @@ if __name__ == '__main__':
         stats[f'percent_{test}'] = percent
         stats[f'num_not_found_{test}'] = len(diff)
         stats[f'num_expected_{test}'] = len(expected_hosts_test)
-    print(f"Hosts expected but not found in the Elasticsearch ps-owd({stats['percent_owd']}% ({stats['num_not_found_owd']}/{stats['num_expected_owd']}) out of included to configurations not found)\nHosts expected but not found in the Elasticsearch ps-trace({stats['percent_trace']}% ({stats['num_not_found_trace']}/{stats['num_expected_trace']}) out of included to configurations not found)\nHosts expected but not found in the Elasticsearch ps-owd({stats['percent_throughput']}% ({stats['num_not_found_throughput']}/{stats['num_expected_throughput']}) out of included to configurations not found)\n")
+    # print(f"Hosts expected but not found in the Elasticsearch ps-owd({stats['percent_owd']}% ({stats['num_not_found_owd']}/{stats['num_expected_owd']}) out of included to configurations not found)\nHosts expected but not found in the Elasticsearch ps-trace({stats['percent_trace']}% ({stats['num_not_found_trace']}/{stats['num_expected_trace']}) out of included to configurations not found)\nHosts expected but not found in the Elasticsearch ps-owd({stats['percent_throughput']}% ({stats['num_not_found_throughput']}/{stats['num_expected_throughput']}) out of included to configurations not found)\n")
     for s in sites_mapping.keys():
         alarmOnSite = alarms('Networking', 'Sites', f"hosts not found")
         doc = {'from': m_from,
@@ -171,4 +171,4 @@ if __name__ == '__main__':
         toHash = ','.join([s, str(sites_mapping[s]), m_from, m_to, test])
         doc['alarm_id'] = hashlib.sha224(toHash.encode('utf-8')).hexdigest()
         alarmOnSite.addAlarm(body='not found in the Elasticsearch', tags=[s], source=doc)
-        print(f"Hosts expected but not found in the Elasticsearch\n{s}\n{doc['hosts']}\n")
+        # print(f"Hosts expected but not found in the Elasticsearch\n{s}\n{doc['hosts']}\n")
